@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import { calcularPainelSaude } from '@/utils/readequacao'
 import { PainelSaudeData, VendaDiaria, Loja } from '@/types'
 
@@ -28,13 +28,12 @@ export default function PainelSaude() {
       setLoading(true)
       setErro(null)
       try {
+        const sb = getSupabase()
+        const [a, m] = mes.split('-').map(Number)
+        const fimMes = new Date(a, m, 0).toISOString().split('T')[0]
         const [{ data: lojas, error: e1 }, { data: vendas, error: e2 }] = await Promise.all([
-          supabase.from('sim_lojas').select('*'),
-          (() => {
-            const [a, m] = mes.split('-').map(Number)
-            const fimMes = new Date(a, m, 0).toISOString().split('T')[0]
-            return supabase.from('sim_venda_diaria').select('*').gte('data_venda', `${mes}-01`).lte('data_venda', fimMes)
-          })(),
+          sb.from('sim_lojas').select('*'),
+          sb.from('sim_venda_diaria').select('*').gte('data_venda', `${mes}-01`).lte('data_venda', fimMes),
         ])
 
         if (e1 || e2) throw new Error(e1?.message || e2?.message)

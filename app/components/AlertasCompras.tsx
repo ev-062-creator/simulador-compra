@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import { calcularAlertas } from '@/utils/alertas'
 import { AlertaCompra, CompraAndamento, VendaDiaria } from '@/types'
 
@@ -22,9 +22,10 @@ export default function AlertasCompras() {
     async function carregar() {
       setLoading(true)
       try {
+        const sb = getSupabase()
         const [{ data: compras, error: e1 }, { data: vendas, error: e2 }] = await Promise.all([
-          supabase.from('sim_compras_andamento').select('*'),
-          supabase.from('sim_venda_diaria').select('*'),
+          sb.from('sim_compras_andamento').select('*'),
+          sb.from('sim_venda_diaria').select('*'),
         ])
         if (e1 || e2) throw new Error(e1?.message || e2?.message)
         setAlertas(calcularAlertas(
